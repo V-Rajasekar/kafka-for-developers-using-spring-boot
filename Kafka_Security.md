@@ -1,5 +1,19 @@
 # Enabling SSL in Kafka
 
+## SSL Set Up Steps
+1. Generate **server.keystore.jks**
+2. Setup Local Certificate Authority
+3. Create CSR(Certificate Signing Request)
+4. Sign the SSL Certificate
+5. Add the Signed SSL Certificate to **server.keystore** file
+6. Configure the **SSL cert** in out Kafka Broker
+7. Create **client.truststore.jks** for the client 
+
+Step-7 is the explicit creation of client truststore to validate the 
+SSL cert when is presented to kafka clients. Incase of browsers this step is 
+Not required as all browsers comes with the truststore by default
+
+
 - Follow the below steps for enabling SSL in your local environment
 
 ## Generating the KeyStore
@@ -16,6 +30,11 @@ keytool -keystore server.keystore.jks -alias localhost -validity 365 -genkey -ke
 
 ```
 CN=localhost, OU=localhost, O=localhost, L=Chennai, ST=TN, C=IN
+```
+- To see the complete content of the key store file run the below command
+
+```
+Keytool -list -v -keystore server.keystore.jks
 ```
 
 ## Generating CA
@@ -37,6 +56,7 @@ keytool -keystore server.keystore.jks -alias localhost -certreq -file cert-file
 ## Signing the certificate
 
 - The below command takes care of signing the CSR and then it spits out a file **cert-signed**
+- Here for password use the password entered while generating the keystore file.
 
 ```
 openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:password
@@ -66,6 +86,8 @@ keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert
 ```
 
 ## Broker SSL Settings
+
+Add the below properties to the kafka server.properties
 
 ```
 ssl.keystore.location=<location>/server.keystore.jks
